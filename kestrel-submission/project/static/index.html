@@ -1,0 +1,46 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kestrel - order return risk</title>
+<style>
+body{font-family:system-ui,Segoe UI,Arial,sans-serif;margin:0;background:#f4f5f7;color:#1c2330}
+header{background:#1c3a5e;color:#fff;padding:14px 24px}header h1{margin:0;font-size:20px}header small{opacity:.8}
+main{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:20px;padding:20px;max-width:1100px;margin:auto}
+@media(max-width:800px){main{grid-template-columns:1fr}}
+.card{background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+label{display:block;font-size:12px;color:#556;margin:10px 0 3px}input,select{width:100%;padding:7px;border:1px solid #c9cfd8;border-radius:6px;box-sizing:border-box}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{padding:9px 14px;border:0;border-radius:6px;background:#1c3a5e;color:#fff;cursor:pointer;margin:12px 6px 0 0}button.alt{background:#e6e9ee;color:#1c2330}
+.big{font-size:44px;font-weight:700;margin:4px 0}.pill{display:inline-block;padding:3px 12px;border-radius:99px;color:#fff;font-weight:600}
+.high{background:#c0392b}.medium{background:#e08e0b}.low{background:#2e8b57}
+.action{padding:12px;border-radius:8px;margin:12px 0;font-weight:600}.CALL_BEFORE_DISPATCH{background:#fff1d6}.SHIP_NORMALLY{background:#e3f4ea}
+li{margin:6px 0}.up{color:#b03a2e}.down{color:#1e7a46}.err{background:#fde8e8;color:#8a1c1c;padding:12px;border-radius:8px}.muted{color:#667;font-size:13px}
+</style></head><body>
+<header><h1>Kestrel Home - order return risk</h1><small>Enter an order as it looks at dispatch. Nothing leaves this machine.</small></header>
+<main>
+<div class="card"><b>Order</b>
+<div class="row"><div><label>Order placed at</label><input id="order_placed_at" value="2026-10-04 11:30"></div><div><label>Customer ID (optional)</label><input id="customer_id" value="KC100001"></div></div>
+<div class="row"><div><label>SKU</label><input id="sku" value="KH-RV-02"></div><div><label>Channel</label><select id="sales_channel"><option>app</option><option>web</option><option selected>marketplace</option><option>partner_outlet</option></select></div></div>
+<div class="row"><div><label>Payment</label><select id="payment_mode"><option>prepaid_upi</option><option>prepaid_card</option><option selected>cod</option><option>emi</option></select></div><div><label>Discount %</label><input id="discount_pct" type="number" value="25"></div></div>
+<div class="row"><div><label>Qty</label><input id="qty" type="number" value="1"></div><div><label>Promised delivery (days)</label><input id="promised_delivery_days" type="number" value="8"></div></div>
+<div class="row"><div><label>Customer's earlier orders</label><input id="customer_prior_orders" type="number" value="3"></div><div><label>Customer's earlier returns</label><input id="customer_prior_returns" type="number" value="1"></div></div>
+<div class="row"><div><label>Gift?</label><select id="is_gift"><option>N</option><option>Y</option></select></div><div><label>Pincode</label><input id="delivery_pincode" value="440365"></div></div>
+<label>Delivery note</label><input id="delivery_note" value="Call before delivery">
+<button onclick="go()">Score this order</button><button class="alt" onclick="ex(1)">Example: risky</button><button class="alt" onclick="ex(2)">Example: safe</button>
+</div>
+<div class="card" id="out"><span class="muted">The result appears here.</span></div>
+</main>
+<script>
+const F=["order_placed_at","customer_id","sku","sales_channel","payment_mode","discount_pct","qty","promised_delivery_days","customer_prior_orders","customer_prior_returns","is_gift","delivery_pincode","delivery_note"];
+function ex(n){const a={1:["2026-10-04 11:30","KC100001","KH-RV-02","marketplace","cod",25,1,8,3,1,"N","440365","Call before delivery"],2:["2026-10-04 09:10","KC100000","KH-CF-01","app","prepaid_upi",5,1,3,0,0,"N","560001","Leave with security"]}[n];F.forEach((k,i)=>document.getElementById(k).value=a[i]);go()}
+function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+async function go(){const o=document.getElementById('out');const rec={};F.forEach(k=>rec[k]=document.getElementById(k).value);
+ ["discount_pct","qty","promised_delivery_days","customer_prior_orders","customer_prior_returns"].forEach(k=>rec[k]=Number(rec[k]));
+ o.innerHTML='<span class="muted">Scoring...</span>';
+ try{const r=await fetch('/api/score',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rec)});const d=await r.json();
+  if(!r.ok){o.innerHTML='<div class="err"><b>Could not score this order.</b><br>'+esc(d.message||d.error)+'</div>';return}
+  o.innerHTML=`<div class="muted">Chance this order is returned</div><div class="big">${(d.return_probability*100).toFixed(0)}%</div>
+  <span class="pill ${d.risk_band}">${d.risk_band.toUpperCase()}</span> <span class="muted">average order: ${(d.average_order_return_probability*100).toFixed(0)}%</span>
+  <div class="action ${d.recommended_action}">${esc(d.action_text)}<div class="muted">Expected net of calling: Rs ${d.expected_net_rupees_of_calling}</div></div>
+  <b>Why</b><ul>${d.reasons.map(r=>`<li class="${r.effect==='raises risk'?'up':'down'}">${r.effect==='raises risk'?'&#9650;':'&#9660;'} ${esc(r.text)}</li>`).join('')}</ul>
+  ${d.notes.map(n=>`<p class="muted">&#9888; ${esc(n)}</p>`).join('')}<p class="muted">${esc(d.disclaimer)}</p>`}
+ catch(e){o.innerHTML='<div class="err">The service is not reachable. Is <code>python app.py</code> running?</div>'}}
+</script></body></html>

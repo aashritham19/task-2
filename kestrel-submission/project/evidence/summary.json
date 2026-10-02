@@ -1,0 +1,92 @@
+{
+  "validation": [
+    {
+      "cutoff": "2025-12-31",
+      "n": 2179,
+      "base_rate": 0.11473152822395594,
+      "auc": 0.7693748055987558,
+      "pr_auc": 0.375793554192187,
+      "brier": 0.08656618816072552
+    },
+    {
+      "cutoff": "2026-03-31",
+      "n": 2142,
+      "base_rate": 0.11531279178338003,
+      "auc": 0.7799151827203487,
+      "pr_auc": 0.4006791079455962,
+      "brier": 0.08585293916932762
+    },
+    {
+      "cutoff": "2026-03-31 (final)",
+      "n": 2126,
+      "base_rate": 0.11523988711194733,
+      "auc": 0.7835975219433866,
+      "pr_auc": 0.4090219003766937,
+      "brier": 0.08517225469355978
+    }
+  ],
+  "holdout_n": 2126,
+  "holdout_return_rate": 0.11523988711194733,
+  "baseline_accuracy_never_returned": 0.8847601128880527,
+  "best_accuracy": 0.896519285042333,
+  "best_accuracy_threshold": 0.43999999999999995,
+  "accuracy_at_break_even": 0.7337723424270931,
+  "break_even_prob": 0.11180124223602485,
+  "policies": {
+    "call_all": {
+      "contacted": 2126,
+      "returners_in_group": 245,
+      "saved": 98612.5,
+      "cost": 95670.0,
+      "net": 2942.5
+    },
+    "call_p_ge_breakeven": {
+      "contacted": 641,
+      "returners_in_group": 160,
+      "saved": 64400.0,
+      "cost": 28845.0,
+      "net": 35555.0
+    },
+    "call_top20pct": {
+      "contacted": 426,
+      "returners_in_group": 132,
+      "saved": 53129.99999999999,
+      "cost": 19170.0,
+      "net": 33959.99999999999
+    },
+    "call_top10pct": {
+      "contacted": 213,
+      "returners_in_group": 89,
+      "saved": 35822.5,
+      "cost": 9585.0,
+      "net": 26237.5
+    },
+    "hold_top10pct": {
+      "contacted": 213,
+      "returners_in_group": 89,
+      "saved": 12282.0,
+      "lost_sales_revenue": 204299.2884
+    },
+    "hold_p_ge_breakeven": {
+      "contacted": 641,
+      "returners_in_group": 160,
+      "saved": 22080.0,
+      "lost_sales_revenue": 641815.4772000001
+    }
+  },
+  "holdout_months": 3,
+  "shield_split": [
+    {
+      "shield": 0,
+      "orders": 1648,
+      "return_rate": 0.0891990291262136,
+      "avg_score": 0.0904036317512419
+    },
+    {
+      "shield": 1,
+      "orders": 478,
+      "return_rate": 0.20502092050209206,
+      "avg_score": 0.17497427277571082
+    }
+  ]
+}
